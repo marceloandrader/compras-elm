@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class, classList, type_, style, href)
 import Html.Events exposing (onInput, onClick)
 
 
@@ -18,23 +18,41 @@ main =
 
 
 type alias Model =
-    String
+    { showProductForm : Bool
+    , showSearchForm : Bool
+    }
 
 
 model =
-    ""
+    Model False False
+
+
+
+-- UPDATE
 
 
 type Msg
-    = Name String
+    = ShowCreateProduct
+    | HideCreateProduct
+    | ShowSearch
+    | HideSearch
     | Edit
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Name name ->
-            name
+        ShowCreateProduct ->
+            { model | showProductForm = True }
+
+        HideCreateProduct ->
+            { model | showProductForm = False }
+
+        ShowSearch ->
+            { model | showSearchForm = True }
+
+        HideSearch ->
+            { model | showSearchForm = False }
 
         Edit ->
             model
@@ -47,9 +65,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ (class "container") ]
-        [ button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Agregar" ]
-        , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]) ] [ text "Buscar" ]
-        , button [ (class "pull-right") ] [ totals model ]
+        [ button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]), onClick ShowCreateProduct ] [ text "Agregar" ]
+        , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick ShowSearch ] [ text "Buscar" ]
+        , button [ (classList [ ( "btn", True ), ( "btn-default", True ), ( "navbar-btn", True ), ( "pull-right", True ) ]) ] [ totals model ]
         , searchForm model
         , addForm model
         , div [ (class "container") ]
@@ -73,6 +91,7 @@ view model =
                     ]
                 ]
             ]
+        , footerLinks
         ]
 
 
@@ -83,55 +102,81 @@ totals model =
 
 
 searchForm model =
-    div []
+    div [ (classList [ ( "hidden", not model.showSearchForm ) ]) ]
         [ div [ (class "form-group") ]
             [ input [ type_ "text", (class "form-control") ] []
-            , button [] [ text "x" ]
+            , button [ onClick HideSearch ] [ text "x" ]
             ]
         ]
 
 
 addForm model =
-    div []
-        [ div [ (class "form-group") ]
-            [ label [ (class "control-label") ]
-                [ text "Nombre"
+    div [ (classList [ ( "hidden", not model.showProductForm ) ]) ]
+        [ form [ (class "form-inline") ]
+            [ div
+                [ (class "row") ]
+                [ div [ (class "col-xs-3") ]
+                    [ label [ (class "control-label") ]
+                        [ text "Nombre" ]
+                    ]
+                , div [ (class "col-xs-9") ]
+                    [ input [ type_ "text", (class "form-control") ] []
+                    ]
                 ]
-            , input [ type_ "text", (class "form-control") ] []
-            ]
-        , div [ (class "form-group") ]
-            [ label [ (class "control-label") ]
-                [ text "Precio"
+            , div
+                [ (class "row") ]
+                [ div [ (class "col-xs-3") ]
+                    [ label [ (class "control-label") ]
+                        [ text "Precio" ]
+                    ]
+                , div [ (class "col-xs-9") ]
+                    [ input [ type_ "number", (class "form-control") ] []
+                    ]
                 ]
-            , input [ type_ "number", (class "form-control") ] []
-            ]
-        , div [ (class "form-group") ]
-            [ label [ (class "control-label") ]
-                [ text "Cantidad"
+            , div
+                [ (class "row") ]
+                [ div [ (class "col-xs-3") ]
+                    [ label [ (class "control-label") ]
+                        [ text "Cantidad" ]
+                    ]
+                , div [ (class "col-xs-9") ]
+                    [ input [ type_ "number", (class "form-control") ] []
+                    , button [] [ text "+" ]
+                    , button [] [ text "-" ]
+                    ]
                 ]
-            , input [ type_ "number", (class "form-control") ] []
-            , button [] [ text "+" ]
-            , button [] [ text "-" ]
-            ]
-        , div [ (class "form-group") ]
-            [ label [ (class "control-label") ]
-                [ text "Comprado"
+            , div
+                [ (class "row") ]
+                [ div [ (class "col-xs-3") ]
+                    [ label [ (class "control-label") ]
+                        [ text "Comprado" ]
+                    ]
+                , div [ (class "col-xs-9") ]
+                    [ input [ type_ "checkbox" ] []
+                    ]
                 ]
-            , input [ type_ "checkbox" ] []
+            , button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
+            , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick HideCreateProduct ] [ text "Cancelar" ]
             ]
-        , button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
-        , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]) ] [ text "Cancelar" ]
         ]
 
 
 productRow model =
-    tr []
+    tr [ (classList [ ( "comprado", True ) ]) ]
         [ td []
             [ button [ (classList [ ( "btn", True ), ( "btn-danger", True ) ]) ] [ text "-" ]
             ]
         , td
             []
             [ a [ href "#", onClick Edit ] [ text "cell 2" ]
+            , span [ (style [ ( "font-size", "0.8rem" ) ]) ]
+                [ text " x "
+                , text "1"
+                ]
+            ]
+        , td
+            []
+            [ span [ (style [ ( "font-size", "0.8rem" ) ]) ] [ text "100" ]
             ]
         , td
             []
@@ -139,10 +184,16 @@ productRow model =
             ]
         , td
             []
-            [ text "100"
+            [ input [ type_ "checkbox" ] []
             ]
-        , td
-            []
-            [ text "-"
-            ]
+        ]
+
+
+footerLinks =
+    ul [ (class "list-inline") ]
+        [ li [] [ a [] [ text "Limpiar Lista" ] ]
+        , li [] [ text "|" ]
+        , li [] [ a [] [ text "Exportar Lista" ] ]
+        , li [] [ text "|" ]
+        , li [] [ a [] [ text "Importar Lista" ] ]
         ]
