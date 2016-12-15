@@ -1,7 +1,10 @@
 module Main exposing (..)
 
+import Task
+import Date exposing (Date)
+import Date.Format exposing (format)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, type_, style, href, checked)
+import Html.Attributes exposing (class, classList, type_, style, href, checked, value)
 import Html.Events exposing (onInput, onClick, onCheck, onSubmit)
 
 
@@ -18,7 +21,7 @@ main =
 
 
 type alias Product =
-    { id: Int
+    { id : Int
     , name : String
     , price : Float
     , quantity : Int
@@ -45,18 +48,20 @@ updateProductBought : Product -> Bool -> Product
 updateProductBought product bought =
     { product | bought = bought }
 
+
 updateProductId : Product -> Int -> Product
 updateProductId product id =
     { product | id = id }
 
-productTotal: Product -> Float
+
+productTotal : Product -> Float
 productTotal product =
     product.price * (toFloat product.quantity)
 
-otherProduct: Product -> Product -> Bool
+
+otherProduct : Product -> Product -> Bool
 otherProduct product1 product2 =
     product1.id /= product2.id
-
 
 
 type alias Model =
@@ -78,6 +83,7 @@ model =
 
 type Msg
     = ShowCreateProduct
+    | ShowCreateProductAfter Date
     | HideCreateProduct
     | ShowSearch
     | HideSearch
@@ -94,7 +100,14 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         ShowCreateProduct ->
-            { model | showProductForm = True }
+            let
+                currentDate =
+                    Task.perform ShowCreateProductAfter Date.now
+            in
+                { model | showProductForm = True }
+
+        ShowCreateProductAfter date ->
+            { model | newProduct = (Product 0 (Date.Format.format "%m/%d " date) 0 1 False) }
 
         HideCreateProduct ->
             { model | showProductForm = False }
@@ -118,12 +131,14 @@ update msg model =
             { model | newProduct = (updateProductBought model.newProduct bought) }
 
         SaveNewProduct ->
-            { model | latestId = ( model.latestId + 1 )
-                     , newProduct = (updateProductId model.newProduct model.latestId)
-                     , productList = model.newProduct :: model.productList }
+            { model
+                | latestId = (model.latestId + 1)
+                , newProduct = (updateProductId model.newProduct model.latestId)
+                , productList = model.newProduct :: model.productList
+            }
 
         RemoveProduct product ->
-            { model | productList = List.filter (otherProduct product) model.productList   }
+            { model | productList = List.filter (otherProduct product) model.productList }
 
         Edit ->
             model
@@ -153,7 +168,7 @@ view model =
                         ]
                     ]
                 , tbody []
-                   ( List.map productRow model.productList )
+                    (List.map productRow model.productList)
                 ]
             ]
         , footerLinks
@@ -175,9 +190,10 @@ searchForm model =
         ]
 
 
+addForm : Model -> Html Msg
 addForm model =
     div [ (classList [ ( "hidden", not model.showProductForm ) ]) ]
-        [ form [ (class "form-inline"), onSubmit SaveNewProduct  ]
+        [ form [ (class "form-inline"), onSubmit SaveNewProduct ]
             [ div
                 [ (class "row") ]
                 [ div [ (class "col-xs-3") ]
@@ -185,7 +201,7 @@ addForm model =
                         [ text "Nombre" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "text", (class "form-control"), onInput ChangeNewProductName ] []
+                    [ input [ type_ "text", (class "form-control"), onInput ChangeNewProductName, (value model.newProduct.name) ] []
                     ]
                 ]
             , div
@@ -195,7 +211,7 @@ addForm model =
                         [ text "Precio" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductPrice ] []
+                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductPrice, (value (toString model.newProduct.price)) ] []
                     ]
                 ]
             , div
@@ -205,9 +221,9 @@ addForm model =
                         [ text "Cantidad" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductQuantity ] []
-                    , button [] [ text "+" ]
-                    , button [] [ text "-" ]
+                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductQuantity, (value (toString model.newProduct.quantity)) ] []
+                    , button [ type_ "button" ] [ text "+" ]
+                    , button [ type_ "button" ] [ text "-" ]
                     ]
                 ]
             , div
@@ -217,16 +233,16 @@ addForm model =
                         [ text "Comprado" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "checkbox", onCheck ChangeNewProductBought ] []
+                    [ input [ type_ "checkbox", onCheck ChangeNewProductBought, (checked model.newProduct.bought) ] []
                     ]
                 ]
-            , button [ type_ "submit", (classList [ ( "btn", True ), ( "btn-primary", True ) ])] [ text "Crear" ]
+            , button [ type_ "submit", (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
             , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick HideCreateProduct ] [ text "Cancelar" ]
             ]
         ]
 
 
-productRow: Product -> Html Msg
+productRow : Product -> Html Msg
 productRow product =
     tr [ (classList [ ( "comprado", True ) ]) ]
         [ td []
