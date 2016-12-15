@@ -1,8 +1,8 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, type_, style, href)
-import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (class, classList, type_, style, href, checked)
+import Html.Events exposing (onInput, onClick, onCheck)
 
 
 main =
@@ -17,14 +17,47 @@ main =
 -- MODEL
 
 
+type alias Product =
+    { name : String
+    , price : Float
+    , quantity : Int
+    , bought : Bool
+    }
+
+
+updateProductName : Product -> String -> Product
+updateProductName product name =
+    { product | name = name }
+
+
+updateProductPrice : Product -> Float -> Product
+updateProductPrice product price =
+    { product | price = price }
+
+
+updateProductQuantity : Product -> Int -> Product
+updateProductQuantity product quantity =
+    { product | quantity = quantity }
+
+
+updateProductBought : Product -> Bool -> Product
+updateProductBought product bought =
+    { product | bought = bought }
+
+productTotal: Product -> Float
+productTotal product =
+    product.price * (toFloat product.quantity)
+
+
 type alias Model =
     { showProductForm : Bool
     , showSearchForm : Bool
+    , newProduct : Product
     }
 
 
 model =
-    Model False False
+    Model False False (Product "" 0 0 False)
 
 
 
@@ -36,6 +69,10 @@ type Msg
     | HideCreateProduct
     | ShowSearch
     | HideSearch
+    | ChangeNewProductName String
+    | ChangeNewProductPrice String
+    | ChangeNewProductQuantity String
+    | ChangeNewProductBought Bool
     | Edit
 
 
@@ -53,6 +90,18 @@ update msg model =
 
         HideSearch ->
             { model | showSearchForm = False }
+
+        ChangeNewProductName name ->
+            { model | newProduct = (updateProductName model.newProduct name) }
+
+        ChangeNewProductPrice price ->
+            { model | newProduct = (updateProductPrice model.newProduct (Result.withDefault 0.0 (String.toFloat price))) }
+
+        ChangeNewProductQuantity quantity ->
+            { model | newProduct = (updateProductQuantity model.newProduct (Result.withDefault 1 (String.toInt quantity))) }
+
+        ChangeNewProductBought bought ->
+            { model | newProduct = (updateProductBought model.newProduct bought) }
 
         Edit ->
             model
@@ -120,7 +169,7 @@ addForm model =
                         [ text "Nombre" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "text", (class "form-control") ] []
+                    [ input [ type_ "text", (class "form-control"), onInput ChangeNewProductName ] []
                     ]
                 ]
             , div
@@ -130,7 +179,7 @@ addForm model =
                         [ text "Precio" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "number", (class "form-control") ] []
+                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductPrice ] []
                     ]
                 ]
             , div
@@ -140,7 +189,7 @@ addForm model =
                         [ text "Cantidad" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "number", (class "form-control") ] []
+                    [ input [ type_ "number", (class "form-control"), onInput ChangeNewProductQuantity ] []
                     , button [] [ text "+" ]
                     , button [] [ text "-" ]
                     ]
@@ -152,7 +201,7 @@ addForm model =
                         [ text "Comprado" ]
                     ]
                 , div [ (class "col-xs-9") ]
-                    [ input [ type_ "checkbox" ] []
+                    [ input [ type_ "checkbox", onCheck ChangeNewProductBought ] []
                     ]
                 ]
             , button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
@@ -168,23 +217,23 @@ productRow model =
             ]
         , td
             []
-            [ a [ href "#", onClick Edit ] [ text "cell 2" ]
+            [ a [ href "#", onClick Edit ] [ text model.newProduct.name ]
             , span [ (style [ ( "font-size", "0.8rem" ) ]) ]
                 [ text " x "
-                , text "1"
+                , text (toString model.newProduct.quantity)
                 ]
             ]
         , td
             []
-            [ span [ (style [ ( "font-size", "0.8rem" ) ]) ] [ text "100" ]
+            [ span [ (style [ ( "font-size", "0.8rem" ) ]) ] [ text (toString model.newProduct.price) ]
             ]
         , td
             []
-            [ text "100"
+            [ text (toString (productTotal model.newProduct))
             ]
         , td
             []
-            [ input [ type_ "checkbox" ] []
+            [ input [ type_ "checkbox", (checked model.newProduct.bought) ] []
             ]
         ]
 
