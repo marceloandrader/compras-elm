@@ -18,7 +18,8 @@ main =
 
 
 type alias Product =
-    { name : String
+    { id: Int
+    , name : String
     , price : Float
     , quantity : Int
     , bought : Bool
@@ -44,21 +45,31 @@ updateProductBought : Product -> Bool -> Product
 updateProductBought product bought =
     { product | bought = bought }
 
+updateProductId : Product -> Int -> Product
+updateProductId product id =
+    { product | id = id }
+
 productTotal: Product -> Float
 productTotal product =
     product.price * (toFloat product.quantity)
+
+otherProduct: Product -> Product -> Bool
+otherProduct product1 product2 =
+    product1.id /= product2.id
+
 
 
 type alias Model =
     { showProductForm : Bool
     , showSearchForm : Bool
     , newProduct : Product
+    , latestId : Int
     , productList : List Product
     }
 
 
 model =
-    Model False False (Product "" 0 0 False) []
+    Model False False (Product 0 "" 0 0 False) 1 []
 
 
 
@@ -75,6 +86,7 @@ type Msg
     | ChangeNewProductQuantity String
     | ChangeNewProductBought Bool
     | SaveNewProduct
+    | RemoveProduct Product
     | Edit
 
 
@@ -106,7 +118,12 @@ update msg model =
             { model | newProduct = (updateProductBought model.newProduct bought) }
 
         SaveNewProduct ->
-            { model | productList = model.newProduct :: model.productList }
+            { model | latestId = ( model.latestId + 1 )
+                     , newProduct = (updateProductId model.newProduct model.latestId)
+                     , productList = model.newProduct :: model.productList }
+
+        RemoveProduct product ->
+            { model | productList = List.filter (otherProduct product) model.productList   }
 
         Edit ->
             model
@@ -213,7 +230,7 @@ productRow: Product -> Html Msg
 productRow product =
     tr [ (classList [ ( "comprado", True ) ]) ]
         [ td []
-            [ button [ (classList [ ( "btn", True ), ( "btn-danger", True ) ]) ] [ text "-" ]
+            [ button [ (classList [ ( "btn", True ), ( "btn-danger", True ) ]), onClick (RemoveProduct product) ] [ text "-" ]
             ]
         , td
             []
