@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, type_, style, href, checked)
-import Html.Events exposing (onInput, onClick, onCheck)
+import Html.Events exposing (onInput, onClick, onCheck, onSubmit)
 
 
 main =
@@ -53,11 +53,12 @@ type alias Model =
     { showProductForm : Bool
     , showSearchForm : Bool
     , newProduct : Product
+    , productList : List Product
     }
 
 
 model =
-    Model False False (Product "" 0 0 False)
+    Model False False (Product "" 0 0 False) []
 
 
 
@@ -73,6 +74,7 @@ type Msg
     | ChangeNewProductPrice String
     | ChangeNewProductQuantity String
     | ChangeNewProductBought Bool
+    | SaveNewProduct
     | Edit
 
 
@@ -103,6 +105,9 @@ update msg model =
         ChangeNewProductBought bought ->
             { model | newProduct = (updateProductBought model.newProduct bought) }
 
+        SaveNewProduct ->
+            { model | productList = model.newProduct :: model.productList }
+
         Edit ->
             model
 
@@ -131,13 +136,7 @@ view model =
                         ]
                     ]
                 , tbody []
-                    [ productRow model
-                    , productRow model
-                    , productRow model
-                    , productRow model
-                    , productRow model
-                    , productRow model
-                    ]
+                   ( List.map productRow model.productList )
                 ]
             ]
         , footerLinks
@@ -161,7 +160,7 @@ searchForm model =
 
 addForm model =
     div [ (classList [ ( "hidden", not model.showProductForm ) ]) ]
-        [ form [ (class "form-inline") ]
+        [ form [ (class "form-inline"), onSubmit SaveNewProduct  ]
             [ div
                 [ (class "row") ]
                 [ div [ (class "col-xs-3") ]
@@ -204,36 +203,37 @@ addForm model =
                     [ input [ type_ "checkbox", onCheck ChangeNewProductBought ] []
                     ]
                 ]
-            , button [ (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
+            , button [ type_ "submit", (classList [ ( "btn", True ), ( "btn-primary", True ) ])] [ text "Crear" ]
             , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick HideCreateProduct ] [ text "Cancelar" ]
             ]
         ]
 
 
-productRow model =
+productRow: Product -> Html Msg
+productRow product =
     tr [ (classList [ ( "comprado", True ) ]) ]
         [ td []
             [ button [ (classList [ ( "btn", True ), ( "btn-danger", True ) ]) ] [ text "-" ]
             ]
         , td
             []
-            [ a [ href "#", onClick Edit ] [ text model.newProduct.name ]
+            [ a [ href "#", onClick Edit ] [ text product.name ]
             , span [ (style [ ( "font-size", "0.8rem" ) ]) ]
                 [ text " x "
-                , text (toString model.newProduct.quantity)
+                , text (toString product.quantity)
                 ]
             ]
         , td
             []
-            [ span [ (style [ ( "font-size", "0.8rem" ) ]) ] [ text (toString model.newProduct.price) ]
+            [ span [ (style [ ( "font-size", "0.8rem" ) ]) ] [ text (toString product.price) ]
             ]
         , td
             []
-            [ text (toString (productTotal model.newProduct))
+            [ text (toString (productTotal product))
             ]
         , td
             []
-            [ input [ type_ "checkbox", (checked model.newProduct.bought) ] []
+            [ input [ type_ "checkbox", (checked product.bought) ] []
             ]
         ]
 
