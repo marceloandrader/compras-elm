@@ -1,4 +1,6 @@
 ```bash
+npm install -g elm elm-live
+
 git clone https://github.com/marceloandrader/compras-elm.git
 cd compras-elm
 elm-live Main.elm --output elm.js --open

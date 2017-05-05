@@ -132,6 +132,7 @@ update msg model =
                 | latestId = (model.latestId + 1)
                 , newProduct = (updateProductId model.newProduct model.latestId)
                 , productList = model.newProduct :: model.productList
+                , showProductForm = False
             }, Cmd.none)
 
         RemoveProduct product ->
@@ -238,7 +239,7 @@ addForm model =
                     ]
                 ]
             , button [ type_ "submit", (classList [ ( "btn", True ), ( "btn-primary", True ) ]) ] [ text "Crear" ]
-            , button [ (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick HideCreateProduct ] [ text "Cancelar" ]
+            , button [ type_ "button", (classList [ ( "btn", True ), ( "btn-default", True ) ]), onClick HideCreateProduct ] [ text "Cancelar" ]
             ]
         ]
 
