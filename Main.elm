@@ -101,7 +101,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ShowCreateProduct ->
-            ( { model | showProductForm = True }, Task.perform ShowCreateProductAfter Date.now )
+            ( { model | showProductForm = True }, Date.now |> Task.perform ShowCreateProductAfter )
 
         ShowCreateProductAfter date ->
             ( { model | newProduct = (Product 0 (Date.Format.format "%m/%d " date) 0 1 False) }, Cmd.none )
