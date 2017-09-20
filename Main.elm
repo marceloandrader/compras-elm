@@ -75,7 +75,7 @@ type alias Model =
 
 
 model =
-    (Model False False (Product 0 "" 0 0 False) 1 [], Cmd.none)
+    ( Model False False (Product 0 "" 0 0 False) 1 [], Cmd.none )
 
 
 
@@ -97,55 +97,62 @@ type Msg
     | Edit
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ShowCreateProduct ->
-            ({ model | showProductForm = True }, Task.perform ShowCreateProductAfter Date.now)
+            ( { model | showProductForm = True }, Task.perform ShowCreateProductAfter Date.now )
 
         ShowCreateProductAfter date ->
-            ({ model | newProduct = (Product 0 (Date.Format.format "%m/%d " date) 0 1 False) }, Cmd.none)
+            ( { model | newProduct = (Product 0 (Date.Format.format "%m/%d " date) 0 1 False) }, Cmd.none )
 
         HideCreateProduct ->
-            ({ model | showProductForm = False }, Cmd.none)
+            ( { model | showProductForm = False }, Cmd.none )
 
         ShowSearch ->
-            ({ model | showSearchForm = True }, Cmd.none)
+            ( { model | showSearchForm = True }, Cmd.none )
 
         HideSearch ->
-            ({ model | showSearchForm = False }, Cmd.none)
+            ( { model | showSearchForm = False }, Cmd.none )
 
         ChangeNewProductName name ->
-            ({ model | newProduct = (updateProductName model.newProduct name) }, Cmd.none)
+            ( { model | newProduct = (updateProductName model.newProduct name) }, Cmd.none )
 
         ChangeNewProductPrice price ->
-            ({ model | newProduct = (updateProductPrice model.newProduct (Result.withDefault 0.0 (String.toFloat price))) }, Cmd.none)
+            ( { model | newProduct = (updateProductPrice model.newProduct (Result.withDefault 0.0 (String.toFloat price))) }, Cmd.none )
 
         ChangeNewProductQuantity quantity ->
-            ({ model | newProduct = (updateProductQuantity model.newProduct (Result.withDefault 1 (String.toInt quantity))) }, Cmd.none)
+            ( { model | newProduct = (updateProductQuantity model.newProduct (Result.withDefault 1 (String.toInt quantity))) }, Cmd.none )
 
         ChangeNewProductBought bought ->
-            ({ model | newProduct = (updateProductBought model.newProduct bought) }, Cmd.none)
+            ( { model | newProduct = (updateProductBought model.newProduct bought) }, Cmd.none )
 
         SaveNewProduct ->
-            ({ model
+            ( { model
                 | latestId = (model.latestId + 1)
                 , newProduct = (updateProductId model.newProduct model.latestId)
                 , productList = model.newProduct :: model.productList
                 , showProductForm = False
-            }, Cmd.none)
+              }
+            , Cmd.none
+            )
 
         RemoveProduct product ->
-            ({ model | productList = List.filter (otherProduct product) model.productList }, Cmd.none)
+            ( { model | productList = List.filter (otherProduct product) model.productList }, Cmd.none )
 
         Edit ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
+
+
 
 -- SUBSCRIPTIONS
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-      Sub.none
+    Sub.none
+
+
 
 -- VIEW
 
